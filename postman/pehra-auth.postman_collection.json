@@ -1,0 +1,491 @@
+{
+  "info": {
+    "name": "Pehra API - Auth",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{access_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:4000"
+    },
+    {
+      "key": "phone",
+      "value": "9000000002"
+    },
+    {
+      "key": "otp",
+      "value": ""
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    },
+    {
+      "key": "society_id",
+      "value": ""
+    },
+    {
+      "key": "gate_id",
+      "value": ""
+    },
+    {
+      "key": "pairing_code",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "0 Health",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/health",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "health"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1 Login (all roles)",
+      "item": [
+        {
+          "name": "1. Request OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json(); if (r.data && r.data.dev_otp) pm.collectionVariables.set(\"otp\", r.data.dev_otp);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{phone}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/otp/request",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "otp",
+                "request"
+              ]
+            },
+            "description": "Change the \"phone\" variable to log in as someone else. Demo phones: admin 9000000001, guard 9000000002, unpaired guard 9000000006, resident 9000000003."
+          }
+        },
+        {
+          "name": "2. Verify OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.data && r.data.access_token) pm.collectionVariables.set(\"access_token\", r.data.access_token);",
+                  "if (r.data && r.data.refresh_token) pm.collectionVariables.set(\"refresh_token\", r.data.refresh_token);",
+                  "if (r.data && r.data.active_profile) { pm.collectionVariables.set(\"society_id\", r.data.active_profile.society_id || \"\"); if (r.data.active_profile.gate_id) pm.collectionVariables.set(\"gate_id\", r.data.active_profile.gate_id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"{{phone}}\",\n  \"otp\": \"{{otp}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/otp/verify",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "otp",
+                "verify"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Refresh token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json();",
+                  "if (r.data && r.data.access_token) pm.collectionVariables.set(\"access_token\", r.data.access_token);",
+                  "if (r.data && r.data.refresh_token) pm.collectionVariables.set(\"refresh_token\", r.data.refresh_token);",
+                  "if (r.data && r.data.active_profile) { pm.collectionVariables.set(\"society_id\", r.data.active_profile.society_id || \"\"); if (r.data.active_profile.gate_id) pm.collectionVariables.set(\"gate_id\", r.data.active_profile.gate_id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/refresh",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "refresh"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/me",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Switch role",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json(); if (r.data && r.data.access_token) pm.collectionVariables.set(\"access_token\", r.data.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"resident\",\n  \"society_id\": \"{{society_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/switch-role",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "switch-role"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh_token\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/logout",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "logout"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2 New person",
+      "item": [
+        {
+          "name": "Create society (become admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json(); if (r.data && r.data.access_token) pm.collectionVariables.set(\"access_token\", r.data.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"society_name\": \"Green Valley\",\n  \"admin_name\": \"Anil Kapoor\",\n  \"address_line\": \"Baner Road\",\n  \"city\": \"Pune\",\n  \"state\": \"Maharashtra\",\n  \"pincode\": \"411045\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/admin/register-society",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "admin",
+                "register-society"
+              ]
+            },
+            "description": "Log in with a NEW phone first. Response contains the society invite code."
+          }
+        },
+        {
+          "name": "Join as resident",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json(); if (r.data && r.data.access_token) pm.collectionVariables.set(\"access_token\", r.data.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"invite_code\": \"SUN-4829\",\n  \"flat_label\": \"B-402\",\n  \"full_name\": \"Priya Nair\",\n  \"resident_type\": \"tenant\",\n  \"relation_to_head\": \"other\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/resident/join",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "resident",
+                "join"
+              ]
+            },
+            "description": "Log in with a NEW phone first. Demo society code is SUN-4829."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3 Guard phone pairing",
+      "item": [
+        {
+          "name": "Admin: create pairing code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json(); if (r.data && r.data.code) pm.collectionVariables.set(\"pairing_code\", r.data.code);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"gate_id\": \"{{gate_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/guard/pairing-codes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "guard",
+                "pairing-codes"
+              ]
+            },
+            "description": "Log in as admin. Take gate_id from your society (create-society makes \"Main Gate\"; for the demo society copy it from Supabase gates table)."
+          }
+        },
+        {
+          "name": "Guard: pair this phone",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json(); if (r.data && r.data.access_token) pm.collectionVariables.set(\"access_token\", r.data.access_token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"{{pairing_code}}\",\n  \"platform\": \"android\",\n  \"push_token\": \"postman-test-token-1\",\n  \"device_label\": \"Gate phone\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/auth/guard/pair",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "guard",
+                "pair"
+              ]
+            },
+            "description": "Log in as a guard (e.g. 9000000006), then send the code."
+          }
+        }
+      ]
+    }
+  ]
+}
