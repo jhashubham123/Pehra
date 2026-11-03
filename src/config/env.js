@@ -1,6 +1,8 @@
 // Reads environment variables once and checks the important ones exist.
 require('dotenv').config();
 
+const nodeEnv = process.env.NODE_ENV || 'development';
+
 const required = ['DATABASE_URL', 'JWT_SECRET'];
 for (const key of required) {
   if (!process.env[key]) {
@@ -9,7 +11,7 @@ for (const key of required) {
 }
 
 module.exports = {
-  nodeEnv: process.env.NODE_ENV || 'development',
+  nodeEnv,
   port: Number(process.env.PORT || 4000),
 
   databaseUrl: process.env.DATABASE_URL,
@@ -22,7 +24,7 @@ module.exports = {
 
   otp: {
     provider: process.env.OTP_PROVIDER || 'console', // 'console' = only prints the OTP (testing)
-    debugReturn: process.env.OTP_DEBUG_RETURN === 'true', // send OTP back in the response (testing ONLY)
+    debugReturn: nodeEnv !== 'production' && process.env.OTP_DEBUG_RETURN === 'true',
     expiryMinutes: 5,
     resendGapSeconds: Number(process.env.OTP_RESEND_GAP_SECONDS || 30),
     maxPer10Minutes: Number(process.env.OTP_MAX_PER_10_MIN || 5),

@@ -23,6 +23,8 @@ Node.js + Express API for Pehra. Talks to the Supabase Postgres database (tables
     cp .env.example .env      # fill DATABASE_URL and JWT_SECRET
     npm run dev               # http://localhost:4000/api/v1/health
 
+For local OTP testing, keep `NODE_ENV=development`, `OTP_PROVIDER=console`, and `OTP_DEBUG_RETURN=true` in `.env`. Send `POST /api/v1/auth/otp/request` with `{"phone":"<your test phone>"}`; the response includes `data.dev_otp`, which you can submit to `POST /api/v1/auth/otp/verify`. The random OTP is stored in the database as a hash, not plaintext. Console delivery and debug responses are disabled in production; the OTP request endpoint returns `503` until an SMS provider is configured there.
+
 ## Auth APIs (base `/api/v1/auth`)
 
 | Method | Path | Who | What |
@@ -53,14 +55,14 @@ Send `Authorization: Bearer <access_token>` on protected routes.
    - `DB_POOL_MAX`: `3` (optional; keep the pool small for serverless)
    - `JWT_SECRET`: a unique random secret; generate one locally with `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`.
    - `NODE_ENV`: `production`
-   - `OTP_PROVIDER`: `console` only for temporary testing.
-   - `OTP_DEBUG_RETURN`: `false` (or omit it). Never enable debug OTP responses in production.
+   - Do not set `OTP_PROVIDER=console` in Production. Configure a real SMS provider before enabling OTP sign-in.
+   - `OTP_DEBUG_RETURN`: `false` (or omit it). Production never returns debug OTPs.
 4. Make sure the Supabase database schema/tables are already created, then click **Deploy**. After deployment, open `https://<your-project>.vercel.app/api/v1/health`; a successful response confirms the API is live.
 5. In Postman, set the collection variable `base_url` to `https://<your-project>.vercel.app`.
 
 You can also deploy from this folder with the Vercel CLI: run `vercel` to link the project and create a preview deployment, then `vercel --prod` to deploy to production. Add the same environment variables in the Vercel dashboard before deploying.
 
-**OTP limitation:** this project does not yet integrate an SMS provider. `OTP_PROVIDER=console` writes OTPs to function logs; with `OTP_DEBUG_RETURN=false`, the API does not return the OTP to callers. This is suitable only for temporary deployment/health checks, not real user sign-in. Implement and configure an SMS provider in `src/services/otp.service.js` before using authentication with real users; never expose OTPs through production responses or logs.
+**OTP limitation:** this project does not yet integrate an SMS provider. Use the console OTP provider only for local development. Production OTP requests are rejected until SMS delivery is implemented and configured; never expose OTPs through production responses or logs.
 
 ## Test in Postman
 

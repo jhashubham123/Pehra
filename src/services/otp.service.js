@@ -17,6 +17,10 @@ async function sendSms(phone, otp) {
 }
 
 async function requestOtp(phone, ip) {
+  if (env.nodeEnv === 'production' && env.otp.provider === 'console') {
+    throw new ApiError(503, 'OTP delivery is not configured for production.');
+  }
+
   const { rows } = await query(
     `select count(*)::int as sent,
             coalesce(extract(epoch from (now() - max(created_at))), 9999) as seconds_since_last
