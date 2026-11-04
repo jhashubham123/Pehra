@@ -15,6 +15,11 @@ exports.verifyOtp = asyncHandler(async (req, res) => {
   ok(res, data, 'Logged in');
 });
 
+exports.verifyFirebaseToken = asyncHandler(async (req, res) => {
+  const data = await authService.verifyFirebaseTokenAndLogin(req.body.id_token, meta(req));
+  ok(res, data, 'Logged in');
+});
+
 exports.refresh = asyncHandler(async (req, res) => {
   const { refresh_token: token, role, society_id: societyId } = req.body;
   const data = await authService.refresh(token, { role, society_id: societyId }, meta(req));

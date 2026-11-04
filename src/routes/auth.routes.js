@@ -12,6 +12,7 @@ const guard = require('../controllers/guard.controller');
 // --- login (public) ---
 router.post('/otp/request', limiter.otp, validate(v.otpRequest), auth.requestOtp);
 router.post('/otp/verify', limiter.otp, validate(v.otpVerify), auth.verifyOtp);
+router.post('/firebase/verify', limiter.otp, validate(v.firebaseToken), auth.verifyFirebaseToken);
 router.post('/refresh', validate(v.refresh), auth.refresh);
 router.post('/logout', validate(v.logout), auth.logout);
 

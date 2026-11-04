@@ -25,10 +25,13 @@ Node.js + Express API for Pehra. Talks to the Supabase Postgres database (tables
 
 For local OTP testing, keep `NODE_ENV=development`, `OTP_PROVIDER=console`, and `OTP_DEBUG_RETURN=true` in `.env`. Send `POST /api/v1/auth/otp/request` with `{"phone":"<your test phone>"}`; the response includes `data.dev_otp`, which you can submit to `POST /api/v1/auth/otp/verify`. The random OTP is stored in the database as a hash, not plaintext. Console delivery and debug responses are disabled in production; the OTP request endpoint returns `503` until an SMS provider is configured there.
 
+The Firebase Admin SDK requires Node.js 22 or newer; use Node.js 22.x or newer locally and in Vercel.
+
 ## Auth APIs (base `/api/v1/auth`)
 
 | Method | Path | Who | What |
 |---|---|---|---|
+| POST | `/firebase/verify` | public | verify a Firebase Phone Auth ID token and return Pehra tokens |
 | POST | `/otp/request` | public | send OTP to phone |
 | POST | `/otp/verify` | public | verify OTP, returns access + refresh token, `is_new_user`, `profiles` |
 | POST | `/refresh` | public | new tokens (old refresh token stops working) |
@@ -45,6 +48,14 @@ How the three roles are found: nobody picks a role. The admin adds guards/reside
 Responses: `{ "success": true, "message": "...", "data": {...} }` or `{ "success": false, "message": "..." }`.
 Send `Authorization: Bearer <access_token>` on protected routes.
 
+### Firebase Phone Auth
+
+The Flutter app completes Firebase Phone Auth, obtains the Firebase ID token for the signed-in user, and sends it to `POST /api/v1/auth/firebase/verify` as JSON: `{ "id_token": "<Firebase ID token>" }`. The API verifies the token for `FIREBASE_PROJECT_ID`, requires the Firebase phone sign-in provider and a verified phone number, then uses that phone to load/link Pehra profiles and issue the existing Pehra access and refresh tokens. Use those Pehra tokens for subsequent API calls.
+
+Set `FIREBASE_PROJECT_ID=pehra-fbcbd` and configure a Firebase service-account credential on the backend. For local development, set `FIREBASE_SERVICE_ACCOUNT_PATH` to a private service-account JSON file; matching service-account filenames are git-ignored. On Vercel, add the complete service-account JSON as `FIREBASE_SERVICE_ACCOUNT_JSON`—never commit or share the private key. Set the environment variables for the Vercel environments you use and redeploy after changing them.
+
+To create the credential, open Firebase Console → **Project settings** → **Service accounts** → **Generate new private key**. Store the downloaded file privately. For local development, set `FIREBASE_SERVICE_ACCOUNT_PATH` in `.env` to that file's path. For Vercel, paste the complete JSON file contents into the `FIREBASE_SERVICE_ACCOUNT_JSON` environment variable. Do not send this key in chat or commit it to GitHub.
+
 ## Deploy to Vercel
 
 1. Push this project to GitHub. Do not commit `.env`; it is git-ignored. If the project is inside a larger repository, note its folder so you can select it as the Vercel Root Directory.
@@ -54,6 +65,8 @@ Send `Authorization: Bearer <access_token>` on protected routes.
    - `DB_SSL`: `true`
    - `DB_POOL_MAX`: `3` (optional; keep the pool small for serverless)
    - `JWT_SECRET`: a unique random secret; generate one locally with `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`.
+   - `FIREBASE_PROJECT_ID`: `pehra-fbcbd`.
+   - `FIREBASE_SERVICE_ACCOUNT_JSON`: the complete Firebase service-account JSON credential. Do not use a client configuration file such as `google-services.json`.
    - `NODE_ENV`: `production`
    - Do not set `OTP_PROVIDER=console` in Production. Configure a real SMS provider before enabling OTP sign-in.
    - `OTP_DEBUG_RETURN`: `false` (or omit it). Production never returns debug OTPs.

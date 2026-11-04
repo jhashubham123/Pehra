@@ -18,6 +18,10 @@ module.exports = {
   dbSsl: process.env.DB_SSL !== 'false', // Supabase needs SSL; set DB_SSL=false for a local Postgres
   dbPoolMax: Number(process.env.DB_POOL_MAX || 3), // keep small: serverless opens many instances
 
+  firebaseProjectId: process.env.FIREBASE_PROJECT_ID || 'pehra-fbcbd',
+  firebaseServiceAccountJson: process.env.FIREBASE_SERVICE_ACCOUNT_JSON,
+  firebaseServiceAccountPath: process.env.FIREBASE_SERVICE_ACCOUNT_PATH,
+
   jwtSecret: process.env.JWT_SECRET,
   accessTokenMinutes: Number(process.env.ACCESS_TOKEN_MINUTES || 60),
   refreshTokenDays: Number(process.env.REFRESH_TOKEN_DAYS || 30),

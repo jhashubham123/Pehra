@@ -22,6 +22,13 @@ exports.otpVerify = z.object({
   otp: z.string().regex(/^\d{6}$/, 'OTP must be 6 digits'),
 });
 
+exports.firebaseToken = z.object({
+  id_token: z
+    .string()
+    .min(1, 'Firebase ID token is required')
+    .max(10_000, 'Firebase ID token is too long'),
+});
+
 exports.refresh = z.object({
   refresh_token: z.string().min(10, 'refresh_token is required'),
   role: z.enum(['admin', 'guard', 'resident']).optional(),

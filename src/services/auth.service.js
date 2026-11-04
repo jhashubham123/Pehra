@@ -2,6 +2,7 @@
 const { query } = require('../db/query');
 const ApiError = require('../utils/ApiError');
 const otpService = require('./otp.service');
+const firebaseAuthService = require('./firebase-auth.service');
 const tokenService = require('./token.service');
 const profileService = require('./profile.service');
 
@@ -23,6 +24,15 @@ function sendOtp(phone, ip) {
 async function verifyOtpAndLogin(phone, otp, meta) {
   await otpService.verifyOtp(phone, otp);
 
+  return loginWithVerifiedPhone(phone, meta);
+}
+
+async function verifyFirebaseTokenAndLogin(idToken, meta) {
+  const phone = await firebaseAuthService.verifyPhoneIdToken(idToken);
+  return loginWithVerifiedPhone(phone, meta);
+}
+
+async function loginWithVerifiedPhone(phone, meta) {
   const { rows } = await query(
     `insert into users (phone, phone_verified_at, last_login_at) values ($1, now(), now())
      on conflict (phone) do update
@@ -89,4 +99,13 @@ async function switchRole(auth, role, societyId) {
   return { ...tokenService.accessTokenResponse(auth.userId, profile), active_profile: profile };
 }
 
-module.exports = { sendOtp, verifyOtpAndLogin, refresh, logout, me, switchRole, getUser };
+module.exports = {
+  sendOtp,
+  verifyOtpAndLogin,
+  verifyFirebaseTokenAndLogin,
+  refresh,
+  logout,
+  me,
+  switchRole,
+  getUser,
+};
