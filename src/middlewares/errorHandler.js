@@ -15,6 +15,9 @@ module.exports = (err, req, res, next) => {
   if (err.code === '23505') {
     return res.status(409).json({ success: false, message: 'This record already exists.' });
   }
+  if (err.code === '23503') {
+    return res.status(409).json({ success: false, message: 'This record is still in use.' });
+  }
 
   logger.error(err.stack || err);
   res.status(500).json({

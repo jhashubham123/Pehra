@@ -8,6 +8,15 @@ module.exports = (schema, source = 'body') => (req, res, next) => {
     const errors = result.error.issues.map((i) => ({ field: i.path.join('.'), message: i.message }));
     return next(new ApiError(400, errors[0].message, errors));
   }
-  req[source] = result.data;
+  if (source === 'query') {
+    Object.defineProperty(req, 'query', {
+      configurable: true,
+      enumerable: true,
+      writable: true,
+      value: result.data,
+    });
+  } else {
+    req[source] = result.data;
+  }
   next();
 };

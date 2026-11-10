@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Pehra API - Auth",
+    "name": "Pehra API - Auth and Society Admin",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -44,6 +44,22 @@
     },
     {
       "key": "pairing_code",
+      "value": ""
+    },
+    {
+      "key": "tower_id",
+      "value": ""
+    },
+    {
+      "key": "flat_id",
+      "value": ""
+    },
+    {
+      "key": "resident_id",
+      "value": ""
+    },
+    {
+      "key": "join_request_id",
       "value": ""
     }
   ],
@@ -483,6 +499,356 @@
               ]
             },
             "description": "Log in as a guard (e.g. 9000000006), then send the code."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4 Society",
+      "item": [
+        {
+          "name": "Get society and counts",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/society"
+          }
+        },
+        {
+          "name": "Update society",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"city\": \"Pune\",\n  \"approval_wait_seconds\": 60,\n  \"overstay_minutes\": 120,\n  \"photo_retention_days\": 90\n}"
+            },
+            "url": "{{base_url}}/api/v1/society"
+          }
+        },
+        {
+          "name": "Rotate invite code",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/society/invite-code/rotate"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5 Towers",
+      "item": [
+        {
+          "name": "List towers",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/towers?page=1&limit=20"
+          }
+        },
+        {
+          "name": "Create tower",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json(); if (r.data && r.data.id) pm.collectionVariables.set(\"tower_id\", r.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"C\",\n  \"floors\": 12\n}"
+            },
+            "url": "{{base_url}}/api/v1/towers"
+          }
+        },
+        {
+          "name": "Update tower",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"floors\": 13\n}"
+            },
+            "url": "{{base_url}}/api/v1/towers/{{tower_id}}"
+          }
+        },
+        {
+          "name": "Generate flats",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"floors_to\": 12,\n  \"flats_per_floor\": 4\n}"
+            },
+            "url": "{{base_url}}/api/v1/towers/{{tower_id}}/flats/generate"
+          }
+        },
+        {
+          "name": "Delete tower (only empty towers)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/api/v1/towers/{{tower_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6 Flats",
+      "item": [
+        {
+          "name": "Search flats",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/flats?tower_id={{tower_id}}&search= C-402&page=1&limit=20"
+          }
+        },
+        {
+          "name": "Create flat",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json(); if (r.data && r.data.id) pm.collectionVariables.set(\"flat_id\", r.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tower_id\": \"{{tower_id}}\",\n  \"floor\": 4,\n  \"number\": \"402\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/flats"
+          }
+        },
+        {
+          "name": "Register family",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"members\": [\n    {\n      \"full_name\": \"Asha Sharma\",\n      \"phone\": \"9876543210\",\n      \"resident_type\": \"owner\",\n      \"relation_to_head\": \"head\",\n      \"is_head\": true,\n      \"photo_path\": \"residents/asha/profile.jpg\"\n    },\n    {\n      \"full_name\": \"Ravi Sharma\",\n      \"resident_type\": \"family_member\",\n      \"relation_to_head\": \"spouse\"\n    }\n  ]\n}"
+            },
+            "url": "{{base_url}}/api/v1/flats/{{flat_id}}/family"
+          }
+        },
+        {
+          "name": "Update flat",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"number\": \"403\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/flats/{{flat_id}}"
+          }
+        },
+        {
+          "name": "Delete flat (only without resident or visit history)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/api/v1/flats/{{flat_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "7 Gates",
+      "item": [
+        {
+          "name": "List gates",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/gates?page=1&limit=20"
+          }
+        },
+        {
+          "name": "Create gate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"East Gate\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/gates"
+          }
+        },
+        {
+          "name": "Update gate",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"inactive\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/gates/{{gate_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "8 Residents",
+      "item": [
+        {
+          "name": "List residents",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/residents?status=active&page=1&limit=20"
+          }
+        },
+        {
+          "name": "Get resident",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/residents/{{resident_id}}"
+          }
+        },
+        {
+          "name": "Edit resident",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Asha Sharma\",\n  \"receives_alerts\": true\n}"
+            },
+            "url": "{{base_url}}/api/v1/residents/{{resident_id}}"
+          }
+        },
+        {
+          "name": "Move resident out",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Moved to another city\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/residents/{{resident_id}}/move-out"
+          }
+        }
+      ]
+    },
+    {
+      "name": "9 Join requests",
+      "item": [
+        {
+          "name": "List pending requests",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/join-requests?status=pending&page=1&limit=20"
+          }
+        },
+        {
+          "name": "Approve request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_head\": false,\n  \"receives_alerts\": true\n}"
+            },
+            "url": "{{base_url}}/api/v1/join-requests/{{join_request_id}}/approve"
+          }
+        },
+        {
+          "name": "List declined requests",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/join-requests?status=declined&page=1&limit=20"
+          }
+        },
+        {
+          "name": "Decline request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Unable to verify the resident details\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/join-requests/{{join_request_id}}/decline"
           }
         }
       ]

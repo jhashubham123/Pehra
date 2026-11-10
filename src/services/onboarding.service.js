@@ -2,9 +2,11 @@
 const { query, transaction } = require('../db/query');
 const ApiError = require('../utils/ApiError');
 const { randomDigits, randomToken } = require('../utils/crypto');
+const { makeInviteCode } = require('./inviteCode.service');
 const tokenService = require('./token.service');
 const profileService = require('./profile.service');
 const authService = require('./auth.service');
+const auditService = require('./audit.service');
 
 function makeSlug(name) {
   const base = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'society';
@@ -12,47 +14,57 @@ function makeSlug(name) {
   return `${base.slice(0, 50).replace(/-+$/, '')}-${suffix}`;
 }
 
-// "Sunrise Heights" -> "SUN-4829"
-async function makeInviteCode(name) {
-  const letters = name.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 3).padEnd(3, 'X');
-  for (let i = 0; i < 10; i++) {
-    const code = `${letters}-${randomDigits(4)}`;
-    const { rowCount } = await query('select 1 from societies where invite_code = $1', [code]);
-    if (!rowCount) return code;
-  }
-  throw new ApiError(500, 'Could not create a society code. Please try again.');
-}
-
 // Society president opens the app for the first time.
 async function registerSociety(auth, body) {
   const user = await authService.getUser(auth.userId);
-  const inviteCode = await makeInviteCode(body.society_name);
+  let inviteCode;
+  let societyId;
+  for (let attempt = 0; attempt < 10; attempt++) {
+    inviteCode = makeInviteCode(body.society_name);
+    try {
+      societyId = await transaction(async (db) => {
+        const society = await db.query(
+          `insert into societies (name, slug, address_line, city, state, pincode, invite_code)
+           values ($1, $2, $3, $4, $5, $6, $7) returning id`,
+          [
+            body.society_name,
+            makeSlug(body.society_name),
+            body.address_line || null,
+            body.city || null,
+            body.state || null,
+            body.pincode || null,
+            inviteCode,
+          ]
+        );
+        const id = society.rows[0].id;
 
-  const societyId = await transaction(async (db) => {
-    const society = await db.query(
-      `insert into societies (name, slug, address_line, city, state, pincode, invite_code)
-       values ($1, $2, $3, $4, $5, $6, $7) returning id`,
-      [
-        body.society_name,
-        makeSlug(body.society_name),
-        body.address_line || null,
-        body.city || null,
-        body.state || null,
-        body.pincode || null,
-        inviteCode,
-      ]
-    );
-    const id = society.rows[0].id;
-
-    await db.query(
-      `insert into society_staff (society_id, user_id, role, full_name, phone, status, created_by_user_id)
-       values ($1, $2, 'admin', $3, $4, 'active', $2)`,
-      [id, user.id, body.admin_name, user.phone]
-    );
-    await db.query(`insert into gates (society_id, name) values ($1, 'Main Gate')`, [id]);
-    await db.query(`update users set full_name = coalesce(full_name, $2) where id = $1`, [user.id, body.admin_name]);
-    return id;
-  });
+        await db.query(
+          `insert into society_staff (society_id, user_id, role, full_name, phone, status, created_by_user_id)
+           values ($1, $2, 'admin', $3, $4, 'active', $2)`,
+          [id, user.id, body.admin_name, user.phone]
+        );
+        const gate = await db.query(
+          `insert into gates (society_id, name) values ($1, 'Main Gate') returning id`,
+          [id]
+        );
+        await auditService.log(db, {
+          societyId: id,
+          actorUserId: user.id,
+          actorRole: 'admin',
+          action: 'create',
+          entityType: 'gate',
+          entityId: gate.rows[0].id,
+          metadata: { name: 'Main Gate' },
+        });
+        await db.query(`update users set full_name = coalesce(full_name, $2) where id = $1`, [user.id, body.admin_name]);
+        return id;
+      });
+      break;
+    } catch (error) {
+      if (error.code !== '23505' || error.constraint !== 'societies_invite_code_key') throw error;
+    }
+  }
+  if (!societyId) throw new ApiError(500, 'Could not create a society code. Please try again.');
 
   const profiles = await profileService.loadProfiles(user.id);
   const profile = profileService.findProfile(profiles, 'admin', societyId);
