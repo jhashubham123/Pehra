@@ -7,6 +7,8 @@ router.use('/society', require('./society.routes'));
 router.use('/towers', require('./tower.routes'));
 router.use('/flats', require('./flat.routes'));
 router.use('/gates', require('./gate.routes'));
+router.use('/staff', require('./staff.routes'));
+router.use('/gate-devices', require('./gateDevice.routes'));
 router.use('/residents', require('./resident.routes'));
 router.use('/join-requests', require('./joinRequest.routes'));
 

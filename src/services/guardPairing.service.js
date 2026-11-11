@@ -43,6 +43,7 @@ async function createPairingCode(auth, { gate_id: gateId, staff_id: staffId }) {
 
 // Guard: types the code on the phone at the gate.
 async function pairDevice(auth, body) {
+  // Future guard endpoints must check society_staff.status = 'active' and an active gate_devices row at request time, not only the token.
   await transaction(async (db) => {
     const found = await db.query(
       `select id, society_id, gate_id, staff_id from device_pairing_codes

@@ -61,6 +61,18 @@
     {
       "key": "join_request_id",
       "value": ""
+    },
+    {
+      "key": "staff_id",
+      "value": ""
+    },
+    {
+      "key": "staff_phone",
+      "value": ""
+    },
+    {
+      "key": "gate_device_id",
+      "value": ""
     }
   ],
   "item": [
@@ -748,7 +760,104 @@
       ]
     },
     {
-      "name": "8 Residents",
+      "name": "8 Staff and devices",
+      "item": [
+        {
+          "name": "List staff",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/staff?role=guard&status=invited,active,suspended&page=1&limit=20"
+          }
+        },
+        {
+          "name": "Invite guard",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json(); if (r.data && r.data.id) pm.collectionVariables.set(\"staff_id\", r.data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Postman Guard\",\n  \"phone\": \"{{staff_phone}}\",\n  \"shift\": \"day\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/staff"
+          },
+          "description": "Set staff_phone to a new phone number before sending."
+        },
+        {
+          "name": "Get staff member",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/staff/{{staff_id}}"
+          }
+        },
+        {
+          "name": "Edit or suspend staff member",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Postman Guard Updated\"\n}"
+            },
+            "url": "{{base_url}}/api/v1/staff/{{staff_id}}"
+          }
+        },
+        {
+          "name": "Remove staff member",
+          "request": {
+            "method": "DELETE",
+            "url": "{{base_url}}/api/v1/staff/{{staff_id}}"
+          }
+        },
+        {
+          "name": "List gate devices",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const r = pm.response.json(); if (r.data && r.data[0]) pm.collectionVariables.set(\"gate_device_id\", r.data[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/v1/gate-devices?status=active"
+          }
+        },
+        {
+          "name": "Revoke gate device",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/v1/gate-devices/{{gate_device_id}}/revoke"
+          }
+        }
+      ]
+    },
+    {
+      "name": "9 Residents",
       "item": [
         {
           "name": "List residents",
@@ -801,7 +910,7 @@
       ]
     },
     {
-      "name": "9 Join requests",
+      "name": "10 Join requests",
       "item": [
         {
           "name": "List pending requests",

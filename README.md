@@ -45,7 +45,7 @@ The Firebase Admin SDK requires Node.js 22 or newer; use Node.js 22.x or newer l
 
 ## Society admin APIs (base `/api/v1`)
 
-All endpoints below require an active admin token. Society scope is taken from the token; resource IDs from another society return 404. List responses are paginated with `page` (default 1) and `limit` (default 20, maximum 100).
+All endpoints below require an active admin token. Society scope is taken from the token; resource IDs from another society return 404. Paginated lists use `page` (default 1) and `limit` (default 20, maximum 100).
 
 | Method | Path | Purpose |
 |---|---|---|
@@ -65,6 +65,13 @@ All endpoints below require an active admin token. Society scope is taken from t
 | GET | `/gates` | List gates with active device counts |
 | POST | `/gates` | Create a gate |
 | PATCH | `/gates/:id` | Rename or activate/deactivate a gate |
+| GET | `/staff` | Search and list staff by role, status, or name/phone |
+| POST | `/staff` | Invite a guard or admin by phone; guards require a shift |
+| GET | `/staff/:id` | Get staff details and pairing state |
+| PATCH | `/staff/:id` | Edit staff details, suspend, or reactivate a logged-in member |
+| DELETE | `/staff/:id` | Soft-remove staff and revoke active gate devices |
+| GET | `/gate-devices` | List society gate devices by status or gate |
+| POST | `/gate-devices/:id/revoke` | Revoke an active device pairing |
 | GET | `/residents` | Search and list residents by flat or status |
 | GET | `/residents/:id` | Get a resident's details |
 | PATCH | `/residents/:id` | Edit an active resident or change the flat head |
@@ -73,7 +80,7 @@ All endpoints below require an active admin token. Society scope is taken from t
 | POST | `/join-requests/:id/approve` | Approve a pending join request |
 | POST | `/join-requests/:id/decline` | Decline a pending join request with a reason |
 
-Tower flat-generation bodies use `{ "floors_to": 4, "flats_per_floor": 2 }`. Family registration uses `{ "members": [...] }` and returns the created residents as `data.members`; a member's optional `phone` is normalized to E.164 and `photo_path` is a storage object key, not a URL.
+Tower flat-generation bodies use `{ "floors_to": 4, "flats_per_floor": 2 }`. Family registration uses `{ "members": [...] }` and returns the created residents as `data.members`; a member's optional `phone` is normalized to E.164 and `photo_path` is a storage object key, not a URL. Staff phones are normalized to E.164; creating a guard requires `shift` (`day`, `night`, or `general`), while admins must omit it. New staff are invited without creating a user; they become active when they first log in.
 
 How the three roles are found: nobody picks a role. The admin adds guards/residents by phone first; when that phone logs in with OTP, the API matches it and returns the roles (`profiles`). `is_new_user: true` means no role yet, so the app shows "Create society" or "Join society".
 
