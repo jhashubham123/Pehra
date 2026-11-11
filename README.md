@@ -73,7 +73,7 @@ All endpoints below require an active admin token. Society scope is taken from t
 | POST | `/join-requests/:id/approve` | Approve a pending join request |
 | POST | `/join-requests/:id/decline` | Decline a pending join request with a reason |
 
-Tower flat-generation bodies use `{ "floors_to": 4, "flats_per_floor": 2 }`. Family registration uses `{ "members": [...] }`; a member's optional `phone` is normalized to E.164 and `photo_path` is a storage object key, not a URL.
+Tower flat-generation bodies use `{ "floors_to": 4, "flats_per_floor": 2 }`. Family registration uses `{ "members": [...] }` and returns the created residents as `data.members`; a member's optional `phone` is normalized to E.164 and `photo_path` is a storage object key, not a URL.
 
 How the three roles are found: nobody picks a role. The admin adds guards/residents by phone first; when that phone logs in with OTP, the API matches it and returns the roles (`profiles`). `is_new_user: true` means no role yet, so the app shows "Create society" or "Join society".
 

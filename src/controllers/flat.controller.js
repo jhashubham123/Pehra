@@ -22,7 +22,9 @@ exports.remove = asyncHandler(async (req, res) => {
 exports.registerFamily = asyncHandler(async (req, res) => {
   created(
     res,
-    await residentService.registerFamily(req.auth, req.params.flatId, req.body.members),
+    {
+      members: await residentService.registerFamily(req.auth, req.params.flatId, req.body.members),
+    },
     'Family registered'
   );
 });

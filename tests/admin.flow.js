@@ -157,9 +157,9 @@ function uniquePhone() {
       ],
     }, token);
     assert.equal(family.status, 201, JSON.stringify(family));
-    assert.equal(family.data.length, 2);
-    assert.equal(family.data[1].receives_alerts, true);
-    const [head, member] = family.data;
+    assert.equal(family.data.members.length, 2);
+    assert.equal(family.data.members[1].receives_alerts, true);
+    const [head, member] = family.data.members;
     const multipleHeads = await call('POST', `/flats/${flatId}/family`, {
       members: [
         { full_name: 'Head One', resident_type: 'owner', relation_to_head: 'head', is_head: true },
